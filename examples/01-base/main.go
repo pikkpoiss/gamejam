@@ -50,7 +50,7 @@ func main() {
 	flag.Parse()
 
 	const (
-		WinTitle              = "uniform-texture-coords"
+		WinTitle              = "01-base"
 		WinWidth              = 640
 		WinHeight             = 480
 		PixelsPerUnit float32 = 100
@@ -191,4 +191,3 @@ func main() {
 	textInstances.Delete()
 	glog.Flush()
 }
-
