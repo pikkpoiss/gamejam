@@ -31,12 +31,34 @@ func main() {
 		err error
 	)
 	flag.Parse()
-	app = &gamejam.BaseApp{
-		WindowWidth:  640,
-		WindowHeight: 480,
-		WindowTitle:  "02-app",
-	}
+	app = NewApp()
 	if err = app.Run(); err != nil {
 		panic(err)
+	}
+}
+
+type App struct {
+	*gamejam.BaseApp
+	scene gamejam.Scene
+}
+
+func NewApp() *App {
+	return &App{
+		BaseApp: &gamejam.BaseApp{
+			WindowWidth:  640,
+			WindowHeight: 480,
+			WindowTitle:  "03-scene",
+		},
+		scene: NewScene(),
+	}
+}
+
+type Scene struct {
+	*gamejam.BaseScene
+}
+
+func NewScene() *Scene {
+	return &Scene{
+		BaseScene: gamejam.NewBaseScene(),
 	}
 }

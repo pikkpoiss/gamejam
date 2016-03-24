@@ -19,13 +19,25 @@ import (
 	"github.com/pikkpoiss/gamejam/v1/base/core"
 )
 
-type App struct {
+type App interface {
+	Update()
+	Render()
+	Run() (err error)
+}
+
+type BaseApp struct {
 	WindowWidth  int
 	WindowHeight int
 	WindowTitle  string
 }
 
-func (a *App) Run() (err error) {
+func (a *BaseApp) Update() {
+}
+
+func (a *BaseApp) Render() {
+}
+
+func (a *BaseApp) Run() (err error) {
 	var (
 		context *core.Context
 	)
