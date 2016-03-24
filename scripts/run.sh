@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 GITROOT=`git rev-parse --show-toplevel`
-NAME=${1:-01-base}
+PATTERN=${1:-01-base}
 
 export GOPATH="$GITROOT/gocode"
 mkdir -p $GOPATH
@@ -19,5 +19,6 @@ go get github.com/golang/glog
 go get golang.org/x/image/math/fixed
 
 shift
+NAME=`ls -d $GITROOT/examples/* | grep $PATTERN | head -n1`
 echo "Running example '$NAME' with args '$@'"
-go run $GITROOT/examples/$NAME/*.go -logtostderr=true $@
+go run $NAME/*.go -logtostderr=true $@
