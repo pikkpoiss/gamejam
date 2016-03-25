@@ -16,8 +16,9 @@ package gamejam
 
 type Scene interface {
 	AddComponent(c Component)
-	Load(r Resources)
+	Load(r Resources, done chan error)
 	Unload(r Resources)
+	Render()
 }
 
 type BaseScene struct {
@@ -35,7 +36,8 @@ func (s *BaseScene) AddComponent(c Component) {
 	s.components[c.GetID()] = c
 }
 
-func (s *BaseScene) Load(r Resources) {
+func (s *BaseScene) Load(r Resources, done chan error) {
+	done <- nil
 }
 
 func (s *BaseScene) Unload(r Resources) {
@@ -47,4 +49,7 @@ func (s *BaseScene) Unload(r Resources) {
 		s.components[id] = nil
 		c.Delete()
 	}
+}
+
+func (s *BaseScene) Render() {
 }

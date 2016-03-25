@@ -16,6 +16,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/pikkpoiss/gamejam/v1/gamejam"
 	"runtime"
 )
@@ -39,7 +40,6 @@ func main() {
 
 type App struct {
 	*gamejam.BaseApp
-	scene gamejam.Scene
 }
 
 func NewApp() *App {
@@ -48,8 +48,9 @@ func NewApp() *App {
 			WindowWidth:  640,
 			WindowHeight: 480,
 			WindowTitle:  "03-scene",
+			SceneManager: gamejam.NewBaseSceneManager(NewScene()),
+			Resources:    gamejam.NewBaseResources(),
 		},
-		scene: NewScene(),
 	}
 }
 
@@ -61,4 +62,8 @@ func NewScene() *Scene {
 	return &Scene{
 		BaseScene: gamejam.NewBaseScene(),
 	}
+}
+
+func (s *Scene) Render() {
+	fmt.Printf("RENDER ")
 }

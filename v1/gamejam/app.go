@@ -15,6 +15,7 @@
 package gamejam
 
 import (
+	"fmt"
 	"github.com/golang/glog"
 	"github.com/pikkpoiss/gamejam/v1/base/core"
 )
@@ -29,6 +30,8 @@ type BaseApp struct {
 	WindowWidth  int
 	WindowHeight int
 	WindowTitle  string
+	SceneManager SceneManager
+	Resources Resources
 }
 
 func (a *BaseApp) Update() {
@@ -45,6 +48,15 @@ func (a *BaseApp) Run() (err error) {
 		return
 	}
 	defer context.Delete()
+	if a.SceneManager == nil {
+		err = fmt.Errorf("SceneManager must be set")
+		return
+	}
+	if a.Resources == nil {
+		err = fmt.Errorf("Resources must be set")
+		return
+	}
+	a.SceneManager.Init(a.Resources)
 	if err = context.CreateWindow(
 		a.WindowWidth,
 		a.WindowHeight,
@@ -55,6 +67,7 @@ func (a *BaseApp) Run() (err error) {
 	for !context.ShouldClose() {
 		context.Events.Poll()
 		context.Clear()
+		a.SceneManager.GetScene().Render()
 	}
 	glog.Flush()
 	return
