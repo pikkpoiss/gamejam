@@ -15,9 +15,9 @@
 package gamejam
 
 type SceneManager interface {
-	Init(r Resources)
+	Init(r Resources) (err error)
 	GetScene() Scene
-	SetScene(s Scene)
+	SetScene(s Scene) (done chan error)
 }
 
 type BaseSceneManager struct {
@@ -30,32 +30,37 @@ func NewBaseSceneManager(s Scene) (m *BaseSceneManager) {
 		scene:     s,
 		resources: nil,
 	}
-	m.SetScene(s)
 	return
 }
 
-func (m *BaseSceneManager) Init(r Resources) {
+func (m *BaseSceneManager) Init(r Resources) (err error) {
 	m.resources = r
-	m.SetScene(m.scene)
+	err = <-m.SetScene(m.scene)
+	return
 }
 
 func (m *BaseSceneManager) GetScene() Scene {
 	return m.scene
 }
 
-func (m *BaseSceneManager) loadScene(scene Scene) {
+func (m *BaseSceneManager) loadScene(scene Scene, done chan error) {
 	var (
-		done = make(chan error)
-		err  error
+		doneScene = make(chan error, 1)
+		err       error
 	)
-	scene.Load(m.resources, done)
-	err = <-done
-	if err != nil {
-		panic(err) // TODO: Better support for propagating errors?
+	scene.Load(m.resources, doneScene)
+	err = <-doneScene
+	if err == nil {
+		if m.scene != nil && m.scene != scene {
+			m.scene.Unload(m.resources)
+		}
+		m.scene = scene
 	}
-	m.scene = scene
+	done <- err
 }
 
-func (m *BaseSceneManager) SetScene(s Scene) {
-	go m.loadScene(s)
+func (m *BaseSceneManager) SetScene(s Scene) chan error {
+	var done = make(chan error)
+	go m.loadScene(s, done)
+	return done
 }

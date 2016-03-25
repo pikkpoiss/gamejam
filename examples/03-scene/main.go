@@ -64,6 +64,11 @@ func NewScene() *Scene {
 	}
 }
 
+func (s *Scene) Load(r gamejam.Resources, done chan error) {
+	fmt.Printf("LOAD\n")
+	done <- nil
+}
+
 func (s *Scene) Render() {
 	fmt.Printf("RENDER ")
 }
