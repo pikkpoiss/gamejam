@@ -31,7 +31,7 @@ type BaseApp struct {
 	WindowHeight int
 	WindowTitle  string
 	SceneManager SceneManager
-	Resources Resources
+	Resources    Resources
 }
 
 func (a *BaseApp) Update() {
@@ -56,12 +56,14 @@ func (a *BaseApp) Run() (err error) {
 		err = fmt.Errorf("Resources must be set")
 		return
 	}
-	a.SceneManager.Init(a.Resources)
 	if err = context.CreateWindow(
 		a.WindowWidth,
 		a.WindowHeight,
 		a.WindowTitle,
 	); err != nil {
+		return
+	}
+	if err = a.SceneManager.Init(a.Resources); err != nil {
 		return
 	}
 	for !context.ShouldClose() {

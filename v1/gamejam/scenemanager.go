@@ -17,7 +17,7 @@ package gamejam
 type SceneManager interface {
 	Init(r Resources) (err error)
 	GetScene() Scene
-	SetScene(s Scene) (done chan error)
+	SetScene(s Scene) (err error)
 }
 
 type BaseSceneManager struct {
@@ -35,32 +35,20 @@ func NewBaseSceneManager(s Scene) (m *BaseSceneManager) {
 
 func (m *BaseSceneManager) Init(r Resources) (err error) {
 	m.resources = r
-	err = <-m.SetScene(m.scene)
-	return
+	return m.SetScene(m.scene)
 }
 
 func (m *BaseSceneManager) GetScene() Scene {
 	return m.scene
 }
 
-func (m *BaseSceneManager) loadScene(scene Scene, done chan error) {
-	var (
-		doneScene = make(chan error, 1)
-		err       error
-	)
-	scene.Load(m.resources, doneScene)
-	err = <-doneScene
-	if err == nil {
-		if m.scene != nil && m.scene != scene {
-			m.scene.Unload(m.resources)
-		}
-		m.scene = scene
+func (m *BaseSceneManager) SetScene(s Scene) (err error) {
+	if err = s.Load(m.resources); err != nil {
+		return
 	}
-	done <- err
-}
-
-func (m *BaseSceneManager) SetScene(s Scene) chan error {
-	var done = make(chan error)
-	go m.loadScene(s, done)
-	return done
+	if m.scene != nil && m.scene != s {
+		m.scene.Unload(m.resources)
+	}
+	m.scene = s
+	return
 }

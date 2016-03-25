@@ -16,6 +16,8 @@ package gamejam
 
 import (
 	"fmt"
+	"github.com/pikkpoiss/gamejam/v1/base/core"
+	"github.com/pikkpoiss/gamejam/v1/base/loaders"
 	"github.com/pikkpoiss/gamejam/v1/base/render"
 	"github.com/pikkpoiss/gamejam/v1/base/sprites"
 )
@@ -48,6 +50,37 @@ func (t SheetType) Key() ResourceKey {
 type ResourceLoader interface {
 	Key() ResourceKey
 	Load(resources Resources) (res ResourceType, err error)
+}
+
+type TexturePackerSheetLoader struct {
+	jsonPath  string
+	smoothing TextureSmoothing
+}
+
+func NewTexturePackerSheetLoader(path string, smoothing TextureSmoothing) *TexturePackerSheetLoader {
+	return &TexturePackerSheetLoader{
+		jsonPath:  path,
+		smoothing: smoothing,
+	}
+}
+
+func (l *TexturePackerSheetLoader) Key() ResourceKey {
+	return ResourceKey(fmt.Sprintf("%v-%v", l.jsonPath, l.smoothing))
+}
+
+func (l *TexturePackerSheetLoader) Load(resources Resources) (res ResourceType, err error) {
+	var (
+		loader = loaders.NewTexturePackerLoader()
+		sheet  *sprites.Sheet
+	)
+	if sheet, err = loader.Load(l.jsonPath, core.TextureSmoothing(l.smoothing)); err != nil {
+		return
+	}
+	res = SheetType{
+		Sheet: sheet,
+		key:   l.Key(),
+	}
+	return
 }
 
 type Resources interface {

@@ -64,9 +64,18 @@ func NewScene() *Scene {
 	}
 }
 
-func (s *Scene) Load(r gamejam.Resources, done chan error) {
-	fmt.Printf("LOAD\n")
-	done <- nil
+func (s *Scene) Load(r gamejam.Resources) (err error) {
+	var (
+		sheet gamejam.ResourceType
+	)
+	if sheet, err = r.Get(gamejam.NewTexturePackerSheetLoader(
+		"./examples/resources/spritesheet.json",
+		gamejam.SmoothingNearest,
+	)); err != nil {
+		return
+	}
+	fmt.Printf("LOADED %v\n", sheet)
+	return
 }
 
 func (s *Scene) Render() {
