@@ -63,13 +63,14 @@ func (a *BaseApp) Run() (err error) {
 	); err != nil {
 		return
 	}
-	if err = a.SceneManager.Init(a.Resources); err != nil {
+	if err = a.SceneManager.Load(a.Resources); err != nil {
 		return
 	}
 	for !context.ShouldClose() {
 		context.Events.Poll()
 		context.Clear()
-		a.SceneManager.GetScene().Render()
+		a.SceneManager.Update()
+		a.SceneManager.Render()
 	}
 	glog.Flush()
 	return

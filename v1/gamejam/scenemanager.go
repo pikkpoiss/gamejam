@@ -14,41 +14,92 @@
 
 package gamejam
 
+import (
+	"fmt"
+)
+
 type SceneManager interface {
-	Init(r Resources) (err error)
-	GetScene() Scene
-	SetScene(s Scene) (err error)
+	Load(r Resources) (err error)
+	AddScene(s Scene) (err error)
+	RemoveScene(id SceneID) (err error)
+	Head() SceneListItem
+	Update()
+	Render()
 }
 
 type BaseSceneManager struct {
-	scene     Scene
+	scenelist SceneList
 	resources Resources
+	nextID    SceneID
 }
 
-func NewBaseSceneManager(s Scene) (m *BaseSceneManager) {
+func NewBaseSceneManager(scenes ...Scene) (m *BaseSceneManager) {
 	m = &BaseSceneManager{
-		scene:     s,
+		scenelist: NewBaseSceneList(scenes...),
 		resources: nil,
+		nextID:    1,
 	}
 	return
 }
 
-func (m *BaseSceneManager) Init(r Resources) (err error) {
-	m.resources = r
-	return m.SetScene(m.scene)
-}
-
-func (m *BaseSceneManager) GetScene() Scene {
-	return m.scene
-}
-
-func (m *BaseSceneManager) SetScene(s Scene) (err error) {
-	if err = s.Load(m.resources); err != nil {
+func (m *BaseSceneManager) Load(r Resources) (err error) {
+	if r == nil {
+		err = fmt.Errorf("Load called with nil Resources")
 		return
 	}
-	if m.scene != nil && m.scene != s {
-		m.scene.Unload(m.resources)
+	m.resources = r
+	var item = m.Head()
+	for item != nil {
+		if err = m.loadScene(item); err != nil {
+			return
+		}
+		item = item.Next()
 	}
-	m.scene = s
 	return
+}
+
+func (m *BaseSceneManager) Head() SceneListItem {
+	return m.scenelist.Head()
+}
+
+func (m *BaseSceneManager) loadScene(s Scene) (err error) {
+	s.SetID(m.nextID)
+	m.nextID++
+	err = s.OnLoad(m.resources)
+	return
+}
+
+func (m *BaseSceneManager) AddScene(s Scene) (err error) {
+	m.scenelist.Prepend(s)
+	if m.resources == nil {
+		// Load hasn't been called yet.
+		return
+	}
+	err = m.loadScene(s)
+	return
+}
+
+func (m *BaseSceneManager) RemoveScene(id SceneID) (err error) {
+	var removed SceneListItem
+	if removed, err = m.scenelist.Remove(id); err != nil {
+		return
+	}
+	err = removed.OnUnload(m.resources)
+	return
+}
+
+func (m *BaseSceneManager) Update() {
+	var item = m.Head()
+	for item != nil {
+		item.Update(m)
+		item = item.Next()
+	}
+}
+
+func (m *BaseSceneManager) Render() {
+	var item = m.Head()
+	for item != nil {
+		item.Render()
+		item = item.Next()
+	}
 }

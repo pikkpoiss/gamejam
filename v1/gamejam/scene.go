@@ -14,15 +14,21 @@
 
 package gamejam
 
+type SceneID int
+
 type Scene interface {
 	AddComponent(c Component)
-	Load(r Resources) (err error)
-	Unload(r Resources)
+	OnLoad(r Resources) (err error)
+	OnUnload(r Resources) (err error)
+	SetID(id SceneID)
+	GetID() SceneID
+	Update(mgr SceneManager)
 	Render()
 }
 
 type BaseScene struct {
 	components map[ComponentID]Component
+	id         SceneID
 }
 
 func NewBaseScene() *BaseScene {
@@ -31,16 +37,24 @@ func NewBaseScene() *BaseScene {
 	}
 }
 
+func (s *BaseScene) SetID(id SceneID) {
+	s.id = id
+}
+
+func (s *BaseScene) GetID() SceneID {
+	return s.id
+}
+
 func (s *BaseScene) AddComponent(c Component) {
 	c.SetScene(s)
 	s.components[c.GetID()] = c
 }
 
-func (s *BaseScene) Load(r Resources) (err error) {
+func (s *BaseScene) OnLoad(r Resources) (err error) {
 	return
 }
 
-func (s *BaseScene) Unload(r Resources) {
+func (s *BaseScene) OnUnload(r Resources) (err error) {
 	var (
 		id ComponentID
 		c  Component
@@ -49,7 +63,11 @@ func (s *BaseScene) Unload(r Resources) {
 		s.components[id] = nil
 		c.Delete()
 	}
+	return
 }
 
 func (s *BaseScene) Render() {
+}
+
+func (s *BaseScene) Update(mgr SceneManager) {
 }
