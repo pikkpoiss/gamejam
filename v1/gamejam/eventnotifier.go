@@ -19,3 +19,27 @@ type EventNotifier interface {
 	RemoveObserver(obs EventObserver) (err error)
 	Delete()
 }
+
+type BaseEventNotifier struct {
+	list *EventObserverList
+}
+
+func NewBaseEventNotifier() *BaseEventNotifier {
+	return &BaseEventNotifier{
+		list: NewEventObserverList(),
+	}
+}
+
+func (n *BaseEventNotifier) AddObserver(obs EventObserver) (err error) {
+	n.list.Prepend(obs)
+	return
+}
+
+func (n *BaseEventNotifier) RemoveObserver(obs EventObserver) (err error) {
+	err = n.list.Remove(obs)
+	return
+}
+
+func (n *BaseEventNotifier) Delete() {
+	n.list.Delete()
+}

@@ -14,11 +14,16 @@
 
 package gamejam
 
-import "github.com/cheekybits/genny/generic"
+import (
+	"fmt"
+	"github.com/cheekybits/genny/generic"
+)
 
-//go:generate genny -in=$GOFILE -out=eventobserver$GOFILE gen "Something=EventObserver"
+//go:generate genny -in=$GOFILE -out=eventobserverlist.go gen "Something=EventObserver"
 
 type Something generic.Type
+
+var ErrSomethingNotInList = fmt.Errorf("Could not find item in list")
 
 // A SomethingNode represents a doubly-linked Something.
 type SomethingNode struct {
@@ -31,7 +36,9 @@ func (n *SomethingNode) Next() *SomethingNode {
 	return n.next
 }
 
-func (n *SomethingNode) Unlink() {
+// Unlinks the node from the current list.  Returns the next node for convenience iterating.
+func (n *SomethingNode) Unlink() (next *SomethingNode) {
+	next = n.next
 	if n.next != nil {
 		n.next.prev = n.prev
 	}
@@ -40,6 +47,7 @@ func (n *SomethingNode) Unlink() {
 	}
 	n.next = nil
 	n.prev = nil
+	return
 }
 
 // A SomethingList manages a list of SomethingNode items.
@@ -55,18 +63,50 @@ func NewSomethingList(items ...Something) (l *SomethingList) {
 	return
 }
 
-func (l *SomethingList) Head() SomethingNode {
+func (l *SomethingList) Head() *SomethingNode {
 	return l.head
 }
 
 func (l *SomethingList) Prepend(item Something) {
-	var item = &SomethingNode{
+	var node = &SomethingNode{
 		Something: item,
 		next:      l.head,
 		prev:      nil,
 	}
 	if l.head != nil {
-		l.head.prev = item
+		l.head.prev = node
 	}
-	l.head = item
+	l.head = node
+}
+
+// Attempts to remove `item` from the list.
+// Returns ErrSomethingNotInList if item did not exist in list.
+// Uses equality comparison so may remove multiple items depending on
+// what kind of type backs Something.
+func (l *SomethingList) Remove(item Something) (err error) {
+	var (
+		node  = l.Head()
+		found = false
+	)
+	for node != nil {
+		if node.Something == item {
+			node = node.Unlink()
+			found = true
+		} else {
+			node = node.Next()
+			found = true
+		}
+	}
+	if !found {
+		err = ErrSomethingNotInList
+	}
+	return
+}
+
+// Unlinks all Something items from this SomethingList.
+func (l *SomethingList) Delete() {
+	var node = l.Head()
+	for node != nil {
+		node = node.Unlink()
+	}
 }

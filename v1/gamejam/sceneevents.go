@@ -14,6 +14,7 @@
 
 package gamejam
 
+/*
 type SceneCreateEvent struct {
 }
 
@@ -48,3 +49,4 @@ func NewSceneEventListener(impl SceneEventListener) EventListener {
 		SceneEventListener: impl,
 	}
 }
+*/
