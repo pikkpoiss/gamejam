@@ -25,6 +25,10 @@ type SceneEventListener interface {
 	OnSceneDelete(evt SceneDeleteEvent) (err error)
 }
 
+type SceneEventTrigger interface {
+	
+}
+
 type baseSceneEventListener struct {
 	SceneEventListener
 }

@@ -14,34 +14,8 @@
 
 package gamejam
 
-type Event interface {
-}
-
-type EventListener interface {
-	OnEvent(evt Event) (err error)
-}
-
-type EventTrigger interface {
-	Trigger(evt Event) (err error)
-	AddEventListener(listener EventListener) (err error)
-	RemoveEventListener(listener EventListener) (err error)
+type EventNotifier interface {
+	AddObserver(obs EventObserver) (err error)
+	RemoveObserver(obs EventObserver) (err error)
 	Delete()
-}
-
-type BaseEventTrigger struct {
-}
-
-func (t *BaseEventTrigger) Trigger(evt Event) (err error) {
-	return
-}
-
-func (t *BaseEventTrigger) AddEventListener(listener EventListener) (err error) {
-	return
-}
-
-func (t *BaseEventTrigger) RemoveEventListener(listener EventListener) (err error) {
-	return
-}
-
-func (t *BaseEventTrigger) Delete() {
 }
