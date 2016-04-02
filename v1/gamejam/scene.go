@@ -18,21 +18,24 @@ type SceneID int
 
 type Scene interface {
 	AddComponent(c Component)
-	OnLoad(r Resources) (err error)
-	OnUnload(r Resources) (err error)
+	Load(r Resources) (err error)
+	Unload()
 	SetID(id SceneID)
 	GetID() SceneID
 	Update(mgr SceneManager)
 	Render()
+	Delete(r Resources)
 }
 
 type BaseScene struct {
+	notifier   *SceneEventNotifier
 	components map[ComponentID]Component
 	id         SceneID
 }
 
 func NewBaseScene() *BaseScene {
 	return &BaseScene{
+		notifier:   NewSceneEventNotifier(),
 		components: map[ComponentID]Component{},
 	}
 }
@@ -50,11 +53,17 @@ func (s *BaseScene) AddComponent(c Component) {
 	s.components[c.GetID()] = c
 }
 
-func (s *BaseScene) OnLoad(r Resources) (err error) {
+func (s *BaseScene) Load(r Resources) (err error) {
+	s.notifier.NotifySceneLoaded(s)
 	return
 }
 
-func (s *BaseScene) OnUnload(r Resources) (err error) {
+func (s *BaseScene) Unload() {
+	s.notifier.NotifySceneUnload(s)
+	return
+}
+
+func (s *BaseScene) Delete(r Resources) {
 	var (
 		id ComponentID
 		c  Component
@@ -63,6 +72,7 @@ func (s *BaseScene) OnUnload(r Resources) (err error) {
 		s.components[id] = nil
 		c.Delete()
 	}
+	s.notifier.Delete()
 	return
 }
 

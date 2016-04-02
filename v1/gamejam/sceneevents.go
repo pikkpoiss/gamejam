@@ -14,39 +14,52 @@
 
 package gamejam
 
-/*
-type SceneCreateEvent struct {
+// Fired after the scene has finished loading all resources.
+type SceneLoadedEvent struct {
+	Scene
 }
 
-type SceneDeleteEvent struct {
+// Fired before the scene starts unloading all resources.
+type SceneUnloadEvent struct {
+	Scene
 }
 
-type SceneEventListener interface {
-	OnSceneCreate(evt SceneCreateEvent) (err error)
-	OnSceneDelete(evt SceneDeleteEvent) (err error)
+type SceneEventNotifier struct {
+	*BaseEventNotifier
 }
 
-type SceneEventTrigger interface {
-	
-}
-
-type baseSceneEventListener struct {
-	SceneEventListener
-}
-
-func (l *baseSceneEventListener) OnEvent(evt Event) (err error) {
-	switch event := evt.(type) {
-	case SceneCreateEvent:
-		err = l.OnSceneCreate(event)
-	case SceneDeleteEvent:
-		err = l.OnSceneDelete(event)
+func NewSceneEventNotifier() *SceneEventNotifier {
+	return &SceneEventNotifier{
+		BaseEventNotifier: NewBaseEventNotifier(),
 	}
+}
+
+func (n *SceneEventNotifier) NotifySceneLoaded(scene Scene) {
+	n.Notify(SceneLoadedEvent{
+		Scene: scene,
+	})
+}
+
+func (n *SceneEventNotifier) NotifySceneUnload(scene Scene) {
+	n.Notify(SceneUnloadEvent{
+		Scene: scene,
+	})
+}
+
+type SceneEventObserver interface {
+	OnSceneLoaded(event SceneLoadedEvent)
+	OnSceneUnload(event SceneUnloadEvent)
+}
+
+func BindSceneEventObserver(notifier EventNotifier, obs SceneEventObserver) (id EventObserverID) {
+	id = notifier.AddObserver(func(evt Event) {
+		switch event := evt.(type) {
+		case SceneLoadedEvent:
+			obs.OnSceneLoaded(event)
+		case SceneUnloadEvent:
+			obs.OnSceneUnload(event)
+		}
+		return
+	})
 	return
 }
-
-func NewSceneEventListener(impl SceneEventListener) EventListener {
-	return &baseSceneEventListener{
-		SceneEventListener: impl,
-	}
-}
-*/

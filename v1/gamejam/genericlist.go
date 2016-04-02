@@ -20,14 +20,17 @@ import (
 )
 
 //go:generate genny -in=$GOFILE -out=eventobserverlist.go gen "Something=EventObserver"
+//go:generate genny -in=$GOFILE -out=scenelist.go gen "Something=Scene"
 
 type Something generic.Type
+type SomethingListID int
 
 var ErrSomethingNotInList = fmt.Errorf("Could not find item in list")
 
 // A SomethingNode represents a doubly-linked Something.
 type SomethingNode struct {
 	Something
+	id   SomethingListID
 	next *SomethingNode
 	prev *SomethingNode
 }
@@ -36,7 +39,12 @@ func (n *SomethingNode) Next() *SomethingNode {
 	return n.next
 }
 
-// Unlinks the node from the current list.  Returns the next node for convenience iterating.
+func (n *SomethingNode) ID() SomethingListID {
+	return n.id
+}
+
+// Unlinks the node from the current list.
+// Returns the next node for convenience while iterating.
 func (n *SomethingNode) Unlink() (next *SomethingNode) {
 	next = n.next
 	if n.next != nil {
@@ -52,11 +60,14 @@ func (n *SomethingNode) Unlink() (next *SomethingNode) {
 
 // A SomethingList manages a list of SomethingNode items.
 type SomethingList struct {
-	head *SomethingNode
+	nextID SomethingListID
+	head   *SomethingNode
 }
 
 func NewSomethingList(items ...Something) (l *SomethingList) {
-	l = &SomethingList{}
+	l = &SomethingList{
+		nextID: 1,
+	}
 	for i := len(items) - 1; i >= 0; i-- {
 		l.Prepend(items[i])
 	}
@@ -67,9 +78,12 @@ func (l *SomethingList) Head() *SomethingNode {
 	return l.head
 }
 
-func (l *SomethingList) Prepend(item Something) {
+func (l *SomethingList) Prepend(item Something) (id SomethingListID) {
+	id = l.nextID
+	l.nextID++
 	var node = &SomethingNode{
 		Something: item,
+		id:        id,
 		next:      l.head,
 		prev:      nil,
 	}
@@ -77,29 +91,20 @@ func (l *SomethingList) Prepend(item Something) {
 		l.head.prev = node
 	}
 	l.head = node
+	return
 }
 
 // Attempts to remove `item` from the list.
-// Returns ErrSomethingNotInList if item did not exist in list.
-// Uses equality comparison so may remove multiple items depending on
-// what kind of type backs Something.
-func (l *SomethingList) Remove(item Something) (err error) {
-	var (
-		node  = l.Head()
-		found = false
-	)
+// Returns ErrSomethingNotInList if the ID did not exist in list.
+func (l *SomethingList) Remove(id SomethingListID) (err error) {
+	var node = l.Head()
 	for node != nil {
-		if node.Something == item {
+		if node.ID() == id {
 			node = node.Unlink()
-			found = true
-		} else {
-			node = node.Next()
-			found = true
+			return // Should only ever be one of an ID in a list.
 		}
 	}
-	if !found {
-		err = ErrSomethingNotInList
-	}
+	err = ErrSomethingNotInList
 	return
 }
 

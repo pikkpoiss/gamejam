@@ -15,8 +15,9 @@
 package gamejam
 
 type EventNotifier interface {
-	AddObserver(obs EventObserver) (err error)
+	AddObserver(obs EventObserver) (id EventObserverID)
 	RemoveObserver(obs EventObserver) (err error)
+	Notify(event Event)
 	Delete()
 }
 
@@ -30,16 +31,24 @@ func NewBaseEventNotifier() *BaseEventNotifier {
 	}
 }
 
-func (n *BaseEventNotifier) AddObserver(obs EventObserver) (err error) {
-	n.list.Prepend(obs)
+func (n *BaseEventNotifier) AddObserver(obs EventObserver) (id EventObserverID) {
+	id = EventObserverID(n.list.Prepend(obs))
 	return
 }
 
-func (n *BaseEventNotifier) RemoveObserver(obs EventObserver) (err error) {
-	err = n.list.Remove(obs)
+func (n *BaseEventNotifier) RemoveObserver(id EventObserverID) (err error) {
+	err = n.list.Remove(EventObserverListID(id))
 	return
 }
 
 func (n *BaseEventNotifier) Delete() {
 	n.list.Delete()
+}
+
+func (n *BaseEventNotifier) Notify(event Event) {
+	var node = n.list.Head()
+	for node != nil {
+		node.EventObserver(event)
+		node = node.Next()
+	}
 }

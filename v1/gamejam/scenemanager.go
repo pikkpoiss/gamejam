@@ -21,21 +21,21 @@ import (
 type SceneManager interface {
 	Load(r Resources) (err error)
 	AddScene(s Scene) (err error)
-	RemoveScene(id SceneID) (err error)
-	Head() SceneListItem
+	Head() *SceneNode
 	Update()
 	Render()
+	Delete()
 }
 
 type BaseSceneManager struct {
-	scenelist SceneList
+	scenelist *SceneList
 	resources Resources
 	nextID    SceneID
 }
 
 func NewBaseSceneManager(scenes ...Scene) (m *BaseSceneManager) {
 	m = &BaseSceneManager{
-		scenelist: NewBaseSceneList(scenes...),
+		scenelist: NewSceneList(scenes...),
 		resources: nil,
 		nextID:    1,
 	}
@@ -58,19 +58,21 @@ func (m *BaseSceneManager) Load(r Resources) (err error) {
 	return
 }
 
-func (m *BaseSceneManager) Head() SceneListItem {
+func (m *BaseSceneManager) Head() *SceneNode {
 	return m.scenelist.Head()
 }
 
 func (m *BaseSceneManager) loadScene(s Scene) (err error) {
-	s.SetID(m.nextID)
-	m.nextID++
-	err = s.OnLoad(m.resources)
+	err = s.Load(m.resources)
 	return
 }
 
+func (m *BaseSceneManager) OnSceneLoaded(event SceneLoadedEvent) {
+	var id = m.scenelist.Prepend(event.Scene)
+	event.Scene.SetID(SceneID(id))
+}
+
 func (m *BaseSceneManager) AddScene(s Scene) (err error) {
-	m.scenelist.Prepend(s)
 	if m.resources == nil {
 		// Load hasn't been called yet.
 		return
@@ -79,13 +81,9 @@ func (m *BaseSceneManager) AddScene(s Scene) (err error) {
 	return
 }
 
-func (m *BaseSceneManager) RemoveScene(id SceneID) (err error) {
-	var removed SceneListItem
-	if removed, err = m.scenelist.Remove(id); err != nil {
-		return
-	}
-	err = removed.OnUnload(m.resources)
-	return
+func (m *BaseSceneManager) OnSceneUnload(event SceneUnloadEvent) {
+	m.scenelist.Remove(SceneListID(event.Scene.GetID()))
+	event.Scene.Delete(m.resources)
 }
 
 func (m *BaseSceneManager) Update() {
@@ -102,4 +100,8 @@ func (m *BaseSceneManager) Render() {
 		item.Render()
 		item = item.Next()
 	}
+}
+
+func (m *BaseSceneManager) Delete() {
+	m.scenelist.Delete()
 }

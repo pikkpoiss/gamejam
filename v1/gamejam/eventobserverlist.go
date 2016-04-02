@@ -20,11 +20,14 @@ package gamejam
 
 import "fmt"
 
+type EventObserverListID int
+
 var ErrEventObserverNotInList = fmt.Errorf("Could not find item in list")
 
 // A EventObserverNode represents a doubly-linked EventObserver.
 type EventObserverNode struct {
 	EventObserver
+	id   EventObserverListID
 	next *EventObserverNode
 	prev *EventObserverNode
 }
@@ -33,7 +36,12 @@ func (n *EventObserverNode) Next() *EventObserverNode {
 	return n.next
 }
 
-// Unlinks the node from the current list.  Returns the next node for convenience iterating.
+func (n *EventObserverNode) ID() EventObserverListID {
+	return n.id
+}
+
+// Unlinks the node from the current list.
+// Returns the next node for convenience while iterating.
 func (n *EventObserverNode) Unlink() (next *EventObserverNode) {
 	next = n.next
 	if n.next != nil {
@@ -49,11 +57,14 @@ func (n *EventObserverNode) Unlink() (next *EventObserverNode) {
 
 // A EventObserverList manages a list of EventObserverNode items.
 type EventObserverList struct {
-	head *EventObserverNode
+	nextID EventObserverListID
+	head   *EventObserverNode
 }
 
 func NewEventObserverList(items ...EventObserver) (l *EventObserverList) {
-	l = &EventObserverList{}
+	l = &EventObserverList{
+		nextID: 1,
+	}
 	for i := len(items) - 1; i >= 0; i-- {
 		l.Prepend(items[i])
 	}
@@ -64,9 +75,12 @@ func (l *EventObserverList) Head() *EventObserverNode {
 	return l.head
 }
 
-func (l *EventObserverList) Prepend(item EventObserver) {
+func (l *EventObserverList) Prepend(item EventObserver) (id EventObserverListID) {
+	id = l.nextID
+	l.nextID++
 	var node = &EventObserverNode{
 		EventObserver: item,
+		id:            id,
 		next:          l.head,
 		prev:          nil,
 	}
@@ -74,29 +88,20 @@ func (l *EventObserverList) Prepend(item EventObserver) {
 		l.head.prev = node
 	}
 	l.head = node
+	return
 }
 
 // Attempts to remove `item` from the list.
-// Returns ErrEventObserverNotInList if item did not exist in list.
-// Uses equality comparison so may remove multiple items depending on
-// what kind of type backs EventObserver.
-func (l *EventObserverList) Remove(item EventObserver) (err error) {
-	var (
-		node  = l.Head()
-		found = false
-	)
+// Returns ErrEventObserverNotInList if the ID did not exist in list.
+func (l *EventObserverList) Remove(id EventObserverListID) (err error) {
+	var node = l.Head()
 	for node != nil {
-		if node.EventObserver == item {
+		if node.ID() == id {
 			node = node.Unlink()
-			found = true
-		} else {
-			node = node.Next()
-			found = true
+			return // Should only ever be one of an ID in a list.
 		}
 	}
-	if !found {
-		err = ErrEventObserverNotInList
-	}
+	err = ErrEventObserverNotInList
 	return
 }
 

@@ -14,6 +14,6 @@
 
 package gamejam
 
-type EventObserver interface {
-	OnNotify(subject interface{}, event Event)
-}
+type EventObserverID int
+
+type EventObserver func(event Event)
