@@ -39,7 +39,7 @@ func (n *SomethingNode) Next() *SomethingNode {
 	return n.next
 }
 
-func (n *SomethingNode) ID() SomethingListID {
+func (n *SomethingNode) NodeID() SomethingListID {
 	return n.id
 }
 
@@ -96,20 +96,22 @@ func (l *SomethingList) Prepend(item Something) (id SomethingListID) {
 
 // Attempts to remove `item` from the list.
 // Returns ErrSomethingNotInList if the ID did not exist in list.
-func (l *SomethingList) Remove(id SomethingListID) (err error) {
+func (l *SomethingList) Remove(id SomethingListID) (removed Something, err error) {
 	var node = l.Head()
 	for node != nil {
-		if node.ID() == id {
-			node = node.Unlink()
+		if node.NodeID() == id {
+			node.Unlink()
+			removed = node.Something
 			return // Should only ever be one of an ID in a list.
 		}
+		node = node.Next()
 	}
 	err = ErrSomethingNotInList
 	return
 }
 
 // Unlinks all Something items from this SomethingList.
-func (l *SomethingList) Delete() {
+func (l *SomethingList) Empty() {
 	var node = l.Head()
 	for node != nil {
 		node = node.Unlink()

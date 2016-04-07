@@ -19,41 +19,30 @@ import (
 )
 
 type SceneManager interface {
-	Load(r Resources) (err error)
 	AddScene(s Scene) (err error)
+	RemoveScene(s Scene) (err error)
 	Head() *SceneNode
-	Update()
-	Render()
-	Delete()
+	Update() (err error)
+	Render() (err error)
+	Delete() (err error)
 }
 
 type BaseSceneManager struct {
-	scenelist *SceneList
-	resources Resources
-	nextID    SceneID
+	removelist []SceneID
+	scenelist  *SceneList
+	resources  Resources
 }
 
-func NewBaseSceneManager(scenes ...Scene) (m *BaseSceneManager) {
+func NewBaseSceneManager(res Resources, scenes ...Scene) (m *BaseSceneManager, err error) {
 	m = &BaseSceneManager{
-		scenelist: NewSceneList(scenes...),
-		resources: nil,
-		nextID:    1,
+		removelist: nil,
+		scenelist:  NewSceneList(),
+		resources:  res,
 	}
-	return
-}
-
-func (m *BaseSceneManager) Load(r Resources) (err error) {
-	if r == nil {
-		err = fmt.Errorf("Load called with nil Resources")
-		return
-	}
-	m.resources = r
-	var item = m.Head()
-	for item != nil {
-		if err = m.loadScene(item); err != nil {
+	for i := len(scenes) - 1; i >= 0; i-- {
+		if err = m.AddScene(scenes[i]); err != nil {
 			return
 		}
-		item = item.Next()
 	}
 	return
 }
@@ -62,46 +51,64 @@ func (m *BaseSceneManager) Head() *SceneNode {
 	return m.scenelist.Head()
 }
 
-func (m *BaseSceneManager) loadScene(s Scene) (err error) {
-	err = s.Load(m.resources)
-	return
-}
-
-func (m *BaseSceneManager) OnSceneLoaded(event SceneLoadedEvent) {
-	var id = m.scenelist.Prepend(event.Scene)
-	event.Scene.SetID(SceneID(id))
-}
-
 func (m *BaseSceneManager) AddScene(s Scene) (err error) {
-	if m.resources == nil {
-		// Load hasn't been called yet.
+	//BindSceneEventObserver(s, m)
+	if err = s.Load(m.resources); err != nil {
 		return
 	}
-	err = m.loadScene(s)
+	var id = m.scenelist.Prepend(s)
+	s.SetSceneID(SceneID(id))
 	return
 }
 
-func (m *BaseSceneManager) OnSceneUnload(event SceneUnloadEvent) {
-	m.scenelist.Remove(SceneListID(event.Scene.GetID()))
-	event.Scene.Delete(m.resources)
+func (m *BaseSceneManager) RemoveScene(s Scene) (err error) {
+	m.removelist = append(m.removelist, s.SceneID())
+	return
 }
 
-func (m *BaseSceneManager) Update() {
-	var item = m.Head()
+func (m *BaseSceneManager) Update() (err error) {
+	var (
+		item  = m.Head()
+		scene Scene
+		id    SceneID
+	)
 	for item != nil {
 		item.Update(m)
 		item = item.Next()
 	}
+	if m.removelist != nil {
+		for _, id = range m.removelist {
+			// Inefficient.
+			if scene, err = m.scenelist.Remove(SceneListID(id)); err != nil {
+				return
+			}
+			if err = scene.Unload(m.resources); err != nil {
+				return
+			}
+		}
+		m.removelist = nil
+	}
+	return
 }
 
-func (m *BaseSceneManager) Render() {
+func (m *BaseSceneManager) Render() (err error) {
 	var item = m.Head()
 	for item != nil {
 		item.Render()
 		item = item.Next()
 	}
+	return
 }
 
-func (m *BaseSceneManager) Delete() {
-	m.scenelist.Delete()
+func (m *BaseSceneManager) Delete() (err error) {
+	fmt.Printf("BaseSceneManager Delete\n")
+	var node = m.scenelist.Head()
+	for node != nil {
+		if err = node.Unload(m.resources); err != nil {
+			return
+		}
+		node = node.Next()
+	}
+	m.scenelist.Empty()
+	return
 }

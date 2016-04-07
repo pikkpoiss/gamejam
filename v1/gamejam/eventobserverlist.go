@@ -36,7 +36,7 @@ func (n *EventObserverNode) Next() *EventObserverNode {
 	return n.next
 }
 
-func (n *EventObserverNode) ID() EventObserverListID {
+func (n *EventObserverNode) NodeID() EventObserverListID {
 	return n.id
 }
 
@@ -93,20 +93,22 @@ func (l *EventObserverList) Prepend(item EventObserver) (id EventObserverListID)
 
 // Attempts to remove `item` from the list.
 // Returns ErrEventObserverNotInList if the ID did not exist in list.
-func (l *EventObserverList) Remove(id EventObserverListID) (err error) {
+func (l *EventObserverList) Remove(id EventObserverListID) (removed EventObserver, err error) {
 	var node = l.Head()
 	for node != nil {
-		if node.ID() == id {
-			node = node.Unlink()
+		if node.NodeID() == id {
+			node.Unlink()
+			removed = node.EventObserver
 			return // Should only ever be one of an ID in a list.
 		}
+		node = node.Next()
 	}
 	err = ErrEventObserverNotInList
 	return
 }
 
 // Unlinks all EventObserver items from this EventObserverList.
-func (l *EventObserverList) Delete() {
+func (l *EventObserverList) Empty() {
 	var node = l.Head()
 	for node != nil {
 		node = node.Unlink()

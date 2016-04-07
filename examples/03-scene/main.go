@@ -28,30 +28,43 @@ func init() {
 
 func main() {
 	var (
-		app gamejam.App
-		err error
+		app  gamejam.App
+		main *gamejam.Main
+		err  error
 	)
 	flag.Parse()
-	app = NewApp()
-	if err = app.Run(); err != nil {
+	if app, err = NewApp(); err != nil {
+		panic(err)
+	}
+	main = gamejam.NewMain(app)
+	if err = main.Run(); err != nil {
 		panic(err)
 	}
 }
 
 type App struct {
-	*gamejam.BaseApp
 }
 
-func NewApp() *App {
-	return &App{
-		BaseApp: &gamejam.BaseApp{
-			WindowWidth:  640,
-			WindowHeight: 480,
-			WindowTitle:  "03-scene",
-			SceneManager: gamejam.NewBaseSceneManager(NewScene()),
-			Resources:    gamejam.NewBaseResources(),
-		},
+func NewApp() (app *App, err error) {
+	app = &App{}
+	return
+}
+
+func (a *App) GetWindowData() (data *gamejam.WindowData, err error) {
+	data = &gamejam.WindowData{
+		WindowWidth:  640,
+		WindowHeight: 480,
+		WindowTitle:  "03-scene",
 	}
+	return
+}
+
+func (a *App) GetAppData() (data *gamejam.AppData, err error) {
+	data = &gamejam.AppData{
+		Resources: gamejam.NewBaseResources(),
+	}
+	data.SceneManager, err = gamejam.NewBaseSceneManager(data.Resources, NewScene())
+	return
 }
 
 type Scene struct {
@@ -65,9 +78,10 @@ func NewScene() *Scene {
 }
 
 func (s *Scene) Load(r gamejam.Resources) (err error) {
-	var (
-		sheet gamejam.ResourceType
-	)
+	if err = s.BaseScene.Load(r); err != nil {
+		return
+	}
+	var sheet gamejam.ResourceType
 	if sheet, err = r.Get(gamejam.NewTexturePackerSheetLoader(
 		"./examples/resources/spritesheet.json",
 		gamejam.SmoothingNearest,
@@ -79,5 +93,11 @@ func (s *Scene) Load(r gamejam.Resources) (err error) {
 }
 
 func (s *Scene) Render() {
-	fmt.Printf("RENDER ")
+	fmt.Printf(".")
+}
+
+func (s *Scene) Unload(res gamejam.Resources) (err error) {
+	fmt.Println("DELETE")
+	err = s.BaseScene.Unload(res)
+	return
 }

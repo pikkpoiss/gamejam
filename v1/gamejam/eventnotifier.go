@@ -15,10 +15,10 @@
 package gamejam
 
 type EventNotifier interface {
-	AddObserver(obs EventObserver) (id EventObserverID)
-	RemoveObserver(obs EventObserver) (err error)
+	AddEventObserver(obs EventObserver) (id EventObserverID)
+	RemoveEventObserver(obs EventObserverID) (err error)
 	Notify(event Event)
-	Delete()
+	DeleteObservers()
 }
 
 type BaseEventNotifier struct {
@@ -31,18 +31,18 @@ func NewBaseEventNotifier() *BaseEventNotifier {
 	}
 }
 
-func (n *BaseEventNotifier) AddObserver(obs EventObserver) (id EventObserverID) {
+func (n *BaseEventNotifier) AddEventObserver(obs EventObserver) (id EventObserverID) {
 	id = EventObserverID(n.list.Prepend(obs))
 	return
 }
 
-func (n *BaseEventNotifier) RemoveObserver(id EventObserverID) (err error) {
-	err = n.list.Remove(EventObserverListID(id))
+func (n *BaseEventNotifier) RemoveEventObserver(id EventObserverID) (err error) {
+	_, err = n.list.Remove(EventObserverListID(id))
 	return
 }
 
-func (n *BaseEventNotifier) Delete() {
-	n.list.Delete()
+func (n *BaseEventNotifier) DeleteObservers() {
+	n.list.Empty()
 }
 
 func (n *BaseEventNotifier) Notify(event Event) {

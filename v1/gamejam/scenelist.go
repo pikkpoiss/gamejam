@@ -36,7 +36,7 @@ func (n *SceneNode) Next() *SceneNode {
 	return n.next
 }
 
-func (n *SceneNode) ID() SceneListID {
+func (n *SceneNode) NodeID() SceneListID {
 	return n.id
 }
 
@@ -93,20 +93,22 @@ func (l *SceneList) Prepend(item Scene) (id SceneListID) {
 
 // Attempts to remove `item` from the list.
 // Returns ErrSceneNotInList if the ID did not exist in list.
-func (l *SceneList) Remove(id SceneListID) (err error) {
+func (l *SceneList) Remove(id SceneListID) (removed Scene, err error) {
 	var node = l.Head()
 	for node != nil {
-		if node.ID() == id {
-			node = node.Unlink()
+		if node.NodeID() == id {
+			node.Unlink()
+			removed = node.Scene
 			return // Should only ever be one of an ID in a list.
 		}
+		node = node.Next()
 	}
 	err = ErrSceneNotInList
 	return
 }
 
 // Unlinks all Scene items from this SceneList.
-func (l *SceneList) Delete() {
+func (l *SceneList) Empty() {
 	var node = l.Head()
 	for node != nil {
 		node = node.Unlink()

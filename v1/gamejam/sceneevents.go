@@ -52,7 +52,7 @@ type SceneEventObserver interface {
 }
 
 func BindSceneEventObserver(notifier EventNotifier, obs SceneEventObserver) (id EventObserverID) {
-	id = notifier.AddObserver(func(evt Event) {
+	id = notifier.AddEventObserver(func(evt Event) {
 		switch event := evt.(type) {
 		case SceneLoadedEvent:
 			obs.OnSceneLoaded(event)

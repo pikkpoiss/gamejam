@@ -21,57 +21,69 @@ import (
 )
 
 type App interface {
-	Update()
-	Render()
-	Run() (err error)
+	GetWindowData() (data *WindowData, err error)
+	GetAppData() (data *AppData, err error)
 }
 
-type BaseApp struct {
+type WindowData struct {
 	WindowWidth  int
 	WindowHeight int
 	WindowTitle  string
+}
+
+type AppData struct {
 	SceneManager SceneManager
 	Resources    Resources
 }
 
-func (a *BaseApp) Update() {
+type Main struct {
+	App
 }
 
-func (a *BaseApp) Render() {
+func NewMain(app App) *Main {
+	return &Main{
+		App: app,
+	}
 }
 
-func (a *BaseApp) Run() (err error) {
+func (a *Main) Run() (err error) {
 	var (
 		context *core.Context
+		winData *WindowData
+		appData *AppData
 	)
 	if context, err = core.NewContext(); err != nil {
 		return
 	}
 	defer context.Delete()
-	if a.SceneManager == nil {
-		err = fmt.Errorf("SceneManager must be set")
-		return
-	}
-	if a.Resources == nil {
-		err = fmt.Errorf("Resources must be set")
+	defer glog.Flush()
+	if winData, err = a.GetWindowData(); err != nil {
 		return
 	}
 	if err = context.CreateWindow(
-		a.WindowWidth,
-		a.WindowHeight,
-		a.WindowTitle,
+		winData.WindowWidth,
+		winData.WindowHeight,
+		winData.WindowTitle,
 	); err != nil {
 		return
 	}
-	if err = a.SceneManager.Load(a.Resources); err != nil {
+	if appData, err = a.GetAppData(); err != nil {
 		return
 	}
+	if appData.SceneManager == nil {
+		err = fmt.Errorf("SceneManager must be set")
+		return
+	}
+	if appData.Resources == nil {
+		err = fmt.Errorf("Resources must be set")
+		return
+	}
+	defer appData.SceneManager.Delete()
 	for !context.ShouldClose() {
 		context.Events.Poll()
 		context.Clear()
-		a.SceneManager.Update()
-		a.SceneManager.Render()
+		appData.SceneManager.Update()
+		appData.SceneManager.Render()
 	}
-	glog.Flush()
 	return
 }
