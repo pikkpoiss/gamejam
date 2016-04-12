@@ -36,7 +36,7 @@ func (n *SceneNode) Next() *SceneNode {
 	return n.next
 }
 
-func (n *SceneNode) NodeID() SceneListID {
+func (n *SceneNode) SceneListID() SceneListID {
 	return n.id
 }
 
@@ -75,10 +75,10 @@ func (l *SceneList) Head() *SceneNode {
 	return l.head
 }
 
-func (l *SceneList) Prepend(item Scene) (id SceneListID) {
-	id = l.nextID
+func (l *SceneList) Prepend(item Scene) (node *SceneNode) {
+	var id = l.nextID
 	l.nextID++
-	var node = &SceneNode{
+	node = &SceneNode{
 		Scene: item,
 		id:    id,
 		next:  l.head,
@@ -96,7 +96,7 @@ func (l *SceneList) Prepend(item Scene) (id SceneListID) {
 func (l *SceneList) Remove(id SceneListID) (removed Scene, err error) {
 	var node = l.Head()
 	for node != nil {
-		if node.NodeID() == id {
+		if node.SceneListID() == id {
 			node.Unlink()
 			removed = node.Scene
 			return // Should only ever be one of an ID in a list.

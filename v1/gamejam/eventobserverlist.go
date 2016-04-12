@@ -36,7 +36,7 @@ func (n *EventObserverNode) Next() *EventObserverNode {
 	return n.next
 }
 
-func (n *EventObserverNode) NodeID() EventObserverListID {
+func (n *EventObserverNode) EventObserverListID() EventObserverListID {
 	return n.id
 }
 
@@ -75,10 +75,10 @@ func (l *EventObserverList) Head() *EventObserverNode {
 	return l.head
 }
 
-func (l *EventObserverList) Prepend(item EventObserver) (id EventObserverListID) {
-	id = l.nextID
+func (l *EventObserverList) Prepend(item EventObserver) (node *EventObserverNode) {
+	var id = l.nextID
 	l.nextID++
-	var node = &EventObserverNode{
+	node = &EventObserverNode{
 		EventObserver: item,
 		id:            id,
 		next:          l.head,
@@ -96,7 +96,7 @@ func (l *EventObserverList) Prepend(item EventObserver) (id EventObserverListID)
 func (l *EventObserverList) Remove(id EventObserverListID) (removed EventObserver, err error) {
 	var node = l.Head()
 	for node != nil {
-		if node.NodeID() == id {
+		if node.EventObserverListID() == id {
 			node.Unlink()
 			removed = node.EventObserver
 			return // Should only ever be one of an ID in a list.

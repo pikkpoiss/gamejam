@@ -32,7 +32,7 @@ func NewBaseEventNotifier() *BaseEventNotifier {
 }
 
 func (n *BaseEventNotifier) AddEventObserver(obs EventObserver) (id EventObserverID) {
-	id = EventObserverID(n.list.Prepend(obs))
+	id = EventObserverID(n.list.Prepend(obs).EventObserverListID())
 	return
 }
 

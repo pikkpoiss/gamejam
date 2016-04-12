@@ -56,8 +56,8 @@ func (m *BaseSceneManager) AddScene(s Scene) (err error) {
 	if err = s.Load(m.resources); err != nil {
 		return
 	}
-	var id = m.scenelist.Prepend(s)
-	s.SetSceneID(SceneID(id))
+	var node = m.scenelist.Prepend(s)
+	s.SetSceneID(SceneID(node.SceneListID()))
 	return
 }
 

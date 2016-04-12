@@ -39,7 +39,7 @@ func (n *SomethingNode) Next() *SomethingNode {
 	return n.next
 }
 
-func (n *SomethingNode) NodeID() SomethingListID {
+func (n *SomethingNode) SomethingListID() SomethingListID {
 	return n.id
 }
 
@@ -78,10 +78,10 @@ func (l *SomethingList) Head() *SomethingNode {
 	return l.head
 }
 
-func (l *SomethingList) Prepend(item Something) (id SomethingListID) {
-	id = l.nextID
+func (l *SomethingList) Prepend(item Something) (node *SomethingNode) {
+	var id = l.nextID
 	l.nextID++
-	var node = &SomethingNode{
+	node = &SomethingNode{
 		Something: item,
 		id:        id,
 		next:      l.head,
@@ -99,7 +99,7 @@ func (l *SomethingList) Prepend(item Something) (id SomethingListID) {
 func (l *SomethingList) Remove(id SomethingListID) (removed Something, err error) {
 	var node = l.Head()
 	for node != nil {
-		if node.NodeID() == id {
+		if node.SomethingListID() == id {
 			node.Unlink()
 			removed = node.Something
 			return // Should only ever be one of an ID in a list.
