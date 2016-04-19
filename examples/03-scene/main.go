@@ -69,6 +69,7 @@ func (a *App) GetAppData() (data *gamejam.AppData, err error) {
 
 type Scene struct {
 	*gamejam.BaseScene
+	count int
 }
 
 func NewScene() *Scene {
@@ -93,7 +94,8 @@ func (s *Scene) Load(r gamejam.Resources) (err error) {
 }
 
 func (s *Scene) Render() {
-	fmt.Printf(".")
+	fmt.Printf("\rRENDER %v", s.count)
+	s.count++
 }
 
 func (s *Scene) Unload(res gamejam.Resources) (err error) {

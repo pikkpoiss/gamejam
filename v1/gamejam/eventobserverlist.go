@@ -2,6 +2,8 @@
 // Any changes will be lost if this file is regenerated.
 // see https://github.com/cheekybits/genny
 
+////////////////////////////////////////////////////////////////////////////////
+
 // Copyright 2016 Pikkpoiss
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

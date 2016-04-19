@@ -14,38 +14,44 @@
 
 package gamejam
 
-type EventNotifier interface {
+type Event interface{}
+
+type EventObserverID int
+
+type EventObserver func(event Event)
+
+type Events interface {
 	AddEventObserver(obs EventObserver) (id EventObserverID)
 	RemoveEventObserver(obs EventObserverID) (err error)
 	Notify(event Event)
 	DeleteObservers()
 }
 
-type BaseEventNotifier struct {
+type BaseEvents struct {
 	list *EventObserverList
 }
 
-func NewBaseEventNotifier() *BaseEventNotifier {
-	return &BaseEventNotifier{
+func NewBaseEvents() *BaseEvents {
+	return &BaseEvents{
 		list: NewEventObserverList(),
 	}
 }
 
-func (n *BaseEventNotifier) AddEventObserver(obs EventObserver) (id EventObserverID) {
+func (n *BaseEvents) AddEventObserver(obs EventObserver) (id EventObserverID) {
 	id = EventObserverID(n.list.Prepend(obs).EventObserverListID())
 	return
 }
 
-func (n *BaseEventNotifier) RemoveEventObserver(id EventObserverID) (err error) {
+func (n *BaseEvents) RemoveEventObserver(id EventObserverID) (err error) {
 	_, err = n.list.Remove(EventObserverListID(id))
 	return
 }
 
-func (n *BaseEventNotifier) DeleteObservers() {
+func (n *BaseEvents) DeleteObservers() {
 	n.list.Empty()
 }
 
-func (n *BaseEventNotifier) Notify(event Event) {
+func (n *BaseEvents) Notify(event Event) {
 	var node = n.list.Head()
 	for node != nil {
 		node.EventObserver(event)

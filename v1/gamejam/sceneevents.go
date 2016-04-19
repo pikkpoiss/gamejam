@@ -24,35 +24,13 @@ type SceneUnloadEvent struct {
 	Scene
 }
 
-type SceneEventNotifier struct {
-	*BaseEventNotifier
-}
-
-func NewSceneEventNotifier() *SceneEventNotifier {
-	return &SceneEventNotifier{
-		BaseEventNotifier: NewBaseEventNotifier(),
-	}
-}
-
-func (n *SceneEventNotifier) NotifySceneLoaded(scene Scene) {
-	n.Notify(SceneLoadedEvent{
-		Scene: scene,
-	})
-}
-
-func (n *SceneEventNotifier) NotifySceneUnload(scene Scene) {
-	n.Notify(SceneUnloadEvent{
-		Scene: scene,
-	})
-}
-
 type SceneEventObserver interface {
 	OnSceneLoaded(event SceneLoadedEvent)
 	OnSceneUnload(event SceneUnloadEvent)
 }
 
-func BindSceneEventObserver(notifier EventNotifier, obs SceneEventObserver) (id EventObserverID) {
-	id = notifier.AddEventObserver(func(evt Event) {
+func BindSceneEvents(events Events, obs SceneEventObserver) (id EventObserverID) {
+	id = events.AddEventObserver(func(evt Event) {
 		switch event := evt.(type) {
 		case SceneLoadedEvent:
 			obs.OnSceneLoaded(event)
